@@ -1,0 +1,125 @@
+# Canonical TPC-DS revenue catalog. Every physical reference is validated against Phase 1 DuckDB.
+assets:
+  - id: raw.customer
+    schema: raw
+    name: customer
+    kind: source
+    domain: customer
+    description: Customer master records used to identify buyers across sales channels.
+    grain: One row per customer.
+    primary_key: [c_customer_sk]
+    concepts: [customer, buyer, shopper, customer profile]
+    tags: [tpcds, source, customer]
+  - id: raw.date_dim
+    schema: raw
+    name: date_dim
+    kind: source
+    domain: shared dimensions
+    description: Calendar dimension used to interpret transaction date keys and reporting years.
+    grain: One row per calendar date.
+    primary_key: [d_date_sk]
+    concepts: [date, calendar, year, reporting period]
+    tags: [tpcds, source, dimension]
+  - id: raw.store_sales
+    schema: raw
+    name: store_sales
+    kind: source
+    domain: commerce
+    description: Item-level sales transactions completed in physical stores.
+    grain: One row per item on a store sales ticket.
+    primary_key: [ss_item_sk, ss_ticket_number]
+    concepts: [store sales, in-store purchase, customer spending, net paid]
+    tags: [tpcds, source, sales, store]
+  - id: raw.catalog_sales
+    schema: raw
+    name: catalog_sales
+    kind: source
+    domain: commerce
+    description: Item-level sales transactions billed through the catalog channel.
+    grain: One row per item on a catalog order.
+    primary_key: [cs_item_sk, cs_order_number]
+    concepts: [catalog sales, catalog purchase, customer spending, net paid]
+    tags: [tpcds, source, sales, catalog]
+  - id: raw.web_sales
+    schema: raw
+    name: web_sales
+    kind: source
+    domain: commerce
+    description: Item-level sales transactions billed through the web channel.
+    grain: One row per item on a web order.
+    primary_key: [ws_item_sk, ws_order_number]
+    concepts: [web sales, online purchase, customer spending, net paid]
+    tags: [tpcds, source, sales, web]
+  - id: analytics.customer_revenue_yearly
+    schema: analytics
+    name: customer_revenue_yearly
+    kind: derived
+    domain: analytics
+    description: Customer revenue by calendar year, split by store, catalog, and web sales channels.
+    grain: One row per customer per calendar year with qualifying sales.
+    primary_key: [customer_sk, calendar_year]
+    concepts: [customer revenue, customer spending, yearly revenue, net paid]
+    tags: [derived, analytics, revenue, customer]
+
+columns:
+  - {id: raw.customer.c_customer_sk, asset_id: raw.customer, name: c_customer_sk, physical_type: BIGINT, semantic_type: customer identifier, role: key, description: Surrogate key that identifies a customer, concepts: [customer identifier, buyer key], synonyms: [customer key]}
+  - {id: raw.customer.c_customer_id, asset_id: raw.customer, name: c_customer_id, physical_type: VARCHAR, semantic_type: business customer identifier, role: dimension, description: Business-facing customer identifier, concepts: [customer id, customer number], synonyms: [customer number]}
+  - {id: raw.customer.c_first_name, asset_id: raw.customer, name: c_first_name, physical_type: VARCHAR, semantic_type: person name, role: dimension, description: Customer given name, concepts: [customer name, first name], synonyms: [given name]}
+  - {id: raw.customer.c_last_name, asset_id: raw.customer, name: c_last_name, physical_type: VARCHAR, semantic_type: person name, role: dimension, description: Customer family name, concepts: [customer name, last name], synonyms: [surname]}
+  - {id: raw.date_dim.d_date_sk, asset_id: raw.date_dim, name: d_date_sk, physical_type: BIGINT, semantic_type: date identifier, role: key, description: Surrogate key for a calendar date, concepts: [date key, transaction date], synonyms: [calendar key]}
+  - {id: raw.date_dim.d_date, asset_id: raw.date_dim, name: d_date, physical_type: DATE, semantic_type: calendar date, role: dimension, description: Calendar date value, concepts: [date, calendar date], synonyms: [day]}
+  - {id: raw.date_dim.d_year, asset_id: raw.date_dim, name: d_year, physical_type: BIGINT, semantic_type: calendar year, role: dimension, description: Calendar year associated with the date, concepts: [year, reporting year], synonyms: [calendar year]}
+  - {id: raw.store_sales.ss_sold_date_sk, asset_id: raw.store_sales, name: ss_sold_date_sk, physical_type: BIGINT, semantic_type: transaction date identifier, role: dimension, description: Date key for the store sale, concepts: [sale date, transaction date], synonyms: [purchase date]}
+  - {id: raw.store_sales.ss_customer_sk, asset_id: raw.store_sales, name: ss_customer_sk, physical_type: BIGINT, semantic_type: customer identifier, role: dimension, description: Customer associated with the store sale, concepts: [customer, buyer], synonyms: [shopper key]}
+  - {id: raw.store_sales.ss_net_paid, asset_id: raw.store_sales, name: ss_net_paid, physical_type: 'DECIMAL(7,2)', semantic_type: monetary amount, role: measure, description: Net amount paid for the store sale item, concepts: [revenue, spending, net paid], synonyms: [sales amount]}
+  - {id: raw.catalog_sales.cs_sold_date_sk, asset_id: raw.catalog_sales, name: cs_sold_date_sk, physical_type: BIGINT, semantic_type: transaction date identifier, role: dimension, description: Date key for the catalog sale, concepts: [sale date, transaction date], synonyms: [purchase date]}
+  - {id: raw.catalog_sales.cs_bill_customer_sk, asset_id: raw.catalog_sales, name: cs_bill_customer_sk, physical_type: BIGINT, semantic_type: customer identifier, role: dimension, description: Customer billed for the catalog sale, concepts: [customer, buyer], synonyms: [billing customer]}
+  - {id: raw.catalog_sales.cs_net_paid, asset_id: raw.catalog_sales, name: cs_net_paid, physical_type: 'DECIMAL(7,2)', semantic_type: monetary amount, role: measure, description: Net amount paid for the catalog sale item, concepts: [revenue, spending, net paid], synonyms: [sales amount]}
+  - {id: raw.web_sales.ws_sold_date_sk, asset_id: raw.web_sales, name: ws_sold_date_sk, physical_type: BIGINT, semantic_type: transaction date identifier, role: dimension, description: Date key for the web sale, concepts: [sale date, transaction date], synonyms: [purchase date]}
+  - {id: raw.web_sales.ws_bill_customer_sk, asset_id: raw.web_sales, name: ws_bill_customer_sk, physical_type: BIGINT, semantic_type: customer identifier, role: dimension, description: Customer billed for the web sale, concepts: [customer, buyer], synonyms: [billing customer]}
+  - {id: raw.web_sales.ws_net_paid, asset_id: raw.web_sales, name: ws_net_paid, physical_type: 'DECIMAL(7,2)', semantic_type: monetary amount, role: measure, description: Net amount paid for the web sale item, concepts: [revenue, spending, net paid], synonyms: [sales amount]}
+  - {id: analytics.customer_revenue_yearly.customer_sk, asset_id: analytics.customer_revenue_yearly, name: customer_sk, physical_type: BIGINT, semantic_type: customer identifier, role: key, description: Customer represented by the revenue aggregation, concepts: [customer, buyer], synonyms: [customer key]}
+  - {id: analytics.customer_revenue_yearly.calendar_year, asset_id: analytics.customer_revenue_yearly, name: calendar_year, physical_type: BIGINT, semantic_type: calendar year, role: key, description: Calendar year represented by the revenue aggregation, concepts: [year, reporting year], synonyms: [calendar year]}
+  - {id: analytics.customer_revenue_yearly.store_net_paid, asset_id: analytics.customer_revenue_yearly, name: store_net_paid, physical_type: 'DECIMAL(38,2)', semantic_type: monetary amount, role: measure, description: Aggregated net paid amount from store sales, concepts: [store revenue, store spending], synonyms: [in-store revenue]}
+  - {id: analytics.customer_revenue_yearly.catalog_net_paid, asset_id: analytics.customer_revenue_yearly, name: catalog_net_paid, physical_type: 'DECIMAL(38,2)', semantic_type: monetary amount, role: measure, description: Aggregated net paid amount from catalog sales, concepts: [catalog revenue, catalog spending], synonyms: [catalog sales revenue]}
+  - {id: analytics.customer_revenue_yearly.web_net_paid, asset_id: analytics.customer_revenue_yearly, name: web_net_paid, physical_type: 'DECIMAL(38,2)', semantic_type: monetary amount, role: measure, description: Aggregated net paid amount from web sales, concepts: [web revenue, online spending], synonyms: [online revenue]}
+  - {id: analytics.customer_revenue_yearly.total_net_paid, asset_id: analytics.customer_revenue_yearly, name: total_net_paid, physical_type: 'DECIMAL(38,2)', semantic_type: monetary amount, role: measure, description: Total net amount paid across all included sales channels, concepts: [customer revenue, customer spending, total sales], synonyms: [total revenue, yearly spend]}
+
+relationships:
+  - {id: customer_to_store_sales, source_asset_id: raw.customer, target_asset_id: raw.store_sales, join_conditions: ['raw.customer.c_customer_sk = raw.store_sales.ss_customer_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Store sales customer key joins to the customer surrogate key.}
+  - {id: customer_to_catalog_sales, source_asset_id: raw.customer, target_asset_id: raw.catalog_sales, join_conditions: ['raw.customer.c_customer_sk = raw.catalog_sales.cs_bill_customer_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Catalog billed-customer key joins to the customer surrogate key.}
+  - {id: customer_to_web_sales, source_asset_id: raw.customer, target_asset_id: raw.web_sales, join_conditions: ['raw.customer.c_customer_sk = raw.web_sales.ws_bill_customer_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Web billed-customer key joins to the customer surrogate key.}
+  - {id: date_to_store_sales, source_asset_id: raw.date_dim, target_asset_id: raw.store_sales, join_conditions: ['raw.date_dim.d_date_sk = raw.store_sales.ss_sold_date_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Store sale date key joins to the calendar date key.}
+  - {id: date_to_catalog_sales, source_asset_id: raw.date_dim, target_asset_id: raw.catalog_sales, join_conditions: ['raw.date_dim.d_date_sk = raw.catalog_sales.cs_sold_date_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Catalog sale date key joins to the calendar date key.}
+  - {id: date_to_web_sales, source_asset_id: raw.date_dim, target_asset_id: raw.web_sales, join_conditions: ['raw.date_dim.d_date_sk = raw.web_sales.ws_sold_date_sk'], cardinality: one_to_many, relationship_type: foreign_key, evidence: Web sale date key joins to the calendar date key.}
+  - {id: customer_to_customer_revenue_yearly, source_asset_id: raw.customer, target_asset_id: analytics.customer_revenue_yearly, join_conditions: ['raw.customer.c_customer_sk = analytics.customer_revenue_yearly.customer_sk'], cardinality: one_to_many, relationship_type: semantic, evidence: Derived customer revenue retains the source customer surrogate key.}
+
+transformations:
+  - id: build_customer_revenue_yearly
+    target_asset_id: analytics.customer_revenue_yearly
+    input_asset_ids: [raw.store_sales, raw.catalog_sales, raw.web_sales, raw.date_dim]
+    sql_path: sql/customer_revenue_yearly.sql
+    description: Unions qualifying store, catalog, and web sales, joins the calendar dimension, and aggregates net paid amounts by customer and calendar year.
+    output_grain: One row per customer per calendar year with qualifying sales.
+
+lineage_edges:
+  - {id: store_customer_to_yearly_customer, source_column_id: raw.store_sales.ss_customer_sk, target_column_id: analytics.customer_revenue_yearly.customer_sk, transformation_id: build_customer_revenue_yearly, operation: Project non-null store customer key into customer aggregation.}
+  - {id: catalog_customer_to_yearly_customer, source_column_id: raw.catalog_sales.cs_bill_customer_sk, target_column_id: analytics.customer_revenue_yearly.customer_sk, transformation_id: build_customer_revenue_yearly, operation: Project non-null catalog billed-customer key into customer aggregation.}
+  - {id: web_customer_to_yearly_customer, source_column_id: raw.web_sales.ws_bill_customer_sk, target_column_id: analytics.customer_revenue_yearly.customer_sk, transformation_id: build_customer_revenue_yearly, operation: Project non-null web billed-customer key into customer aggregation.}
+  - {id: date_year_to_yearly_year, source_column_id: raw.date_dim.d_year, target_column_id: analytics.customer_revenue_yearly.calendar_year, transformation_id: build_customer_revenue_yearly, operation: Join each channel sale to date dimension and project calendar year.}
+  - {id: store_net_paid_to_yearly_store_net_paid, source_column_id: raw.store_sales.ss_net_paid, target_column_id: analytics.customer_revenue_yearly.store_net_paid, transformation_id: build_customer_revenue_yearly, operation: Sum store net paid by customer and calendar year.}
+  - {id: catalog_net_paid_to_yearly_catalog_net_paid, source_column_id: raw.catalog_sales.cs_net_paid, target_column_id: analytics.customer_revenue_yearly.catalog_net_paid, transformation_id: build_customer_revenue_yearly, operation: Sum catalog net paid by customer and calendar year.}
+  - {id: web_net_paid_to_yearly_web_net_paid, source_column_id: raw.web_sales.ws_net_paid, target_column_id: analytics.customer_revenue_yearly.web_net_paid, transformation_id: build_customer_revenue_yearly, operation: Sum web net paid by customer and calendar year.}
+  - {id: store_net_paid_to_yearly_total_net_paid, source_column_id: raw.store_sales.ss_net_paid, target_column_id: analytics.customer_revenue_yearly.total_net_paid, transformation_id: build_customer_revenue_yearly, operation: Include store net paid in all-channel total.}
+  - {id: catalog_net_paid_to_yearly_total_net_paid, source_column_id: raw.catalog_sales.cs_net_paid, target_column_id: analytics.customer_revenue_yearly.total_net_paid, transformation_id: build_customer_revenue_yearly, operation: Include catalog net paid in all-channel total.}
+  - {id: web_net_paid_to_yearly_total_net_paid, source_column_id: raw.web_sales.ws_net_paid, target_column_id: analytics.customer_revenue_yearly.total_net_paid, transformation_id: build_customer_revenue_yearly, operation: Include web net paid in all-channel total.}
+
+metrics:
+  - id: customer_yearly_net_revenue
+    name: Customer Yearly Net Revenue
+    description: Total qualifying net paid sales for a customer in a calendar year across store, catalog, and web channels.
+    definition: Sum of store, catalog, and web channel net paid amounts grouped by customer and calendar year; returns are not subtracted.
+    output_column_id: analytics.customer_revenue_yearly.total_net_paid
+    grain: One customer and one calendar year.
+    source_asset_ids: [raw.store_sales, raw.catalog_sales, raw.web_sales, raw.date_dim, analytics.customer_revenue_yearly]
+    concepts: [customer revenue, customer spending, yearly spend, net paid]

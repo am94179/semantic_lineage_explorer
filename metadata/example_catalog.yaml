@@ -1,0 +1,85 @@
+# Example-only catalog used to verify Phase 0 contracts. TPC-DS metadata arrives in Phase 2.
+assets:
+  - id: example.customer
+    schema: example
+    name: customer
+    kind: source
+    domain: customer
+    description: Customer master records.
+    grain: One row per customer.
+    primary_key: [customer_id]
+    concepts: [customer, buyer]
+    tags: [example]
+  - id: analytics.customer_revenue_yearly
+    schema: analytics
+    name: customer_revenue_yearly
+    kind: derived
+    domain: commerce
+    description: Yearly net revenue aggregated for each customer.
+    grain: One row per customer per calendar year.
+    primary_key: [customer_id, calendar_year]
+    concepts: [customer revenue, customer spending]
+    tags: [example, derived]
+
+columns:
+  - id: example.customer.customer_id
+    asset_id: example.customer
+    name: customer_id
+    physical_type: BIGINT
+    semantic_type: customer identifier
+    role: key
+    description: Stable identifier for a customer.
+    concepts: [customer identifier]
+    synonyms: [customer key]
+  - id: analytics.customer_revenue_yearly.customer_id
+    asset_id: analytics.customer_revenue_yearly
+    name: customer_id
+    physical_type: BIGINT
+    semantic_type: customer identifier
+    role: key
+    description: Customer represented by the aggregated revenue row.
+    concepts: [customer identifier]
+    synonyms: [customer key]
+  - id: analytics.customer_revenue_yearly.total_net_paid
+    asset_id: analytics.customer_revenue_yearly
+    name: total_net_paid
+    physical_type: DECIMAL(18,2)
+    semantic_type: monetary amount
+    role: measure
+    description: Total net amount paid by a customer during the calendar year.
+    concepts: [revenue, spending, net paid]
+    synonyms: [customer revenue]
+
+relationships:
+  - id: customer_to_yearly_revenue
+    source_asset_id: example.customer
+    target_asset_id: analytics.customer_revenue_yearly
+    join_conditions: [example.customer.customer_id = analytics.customer_revenue_yearly.customer_id]
+    cardinality: one_to_many
+    relationship_type: semantic
+    evidence: Example relationship used to validate the Phase 0 contract.
+
+transformations:
+  - id: build_customer_revenue_yearly
+    target_asset_id: analytics.customer_revenue_yearly
+    input_asset_ids: [example.customer]
+    sql_path: sql/customer_revenue_yearly.sql
+    description: Example aggregation definition for the Phase 0 metadata contract.
+    output_grain: One row per customer per calendar year.
+
+lineage_edges:
+  - id: customer_id_to_yearly_revenue_customer_id
+    source_column_id: example.customer.customer_id
+    target_column_id: analytics.customer_revenue_yearly.customer_id
+    transformation_id: build_customer_revenue_yearly
+    operation: Group by customer identifier.
+
+metrics:
+  - id: customer_yearly_net_revenue
+    name: Customer Yearly Net Revenue
+    description: Net amount paid by a customer in a calendar year.
+    definition: Sum of eligible net paid sales amounts by customer and calendar year.
+    output_column_id: analytics.customer_revenue_yearly.total_net_paid
+    grain: Customer and calendar year.
+    source_asset_ids: [analytics.customer_revenue_yearly]
+    concepts: [customer spending, revenue]

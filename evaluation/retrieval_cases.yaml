@@ -1,0 +1,66 @@
+version: 1
+cases:
+  - id: customer-master
+    query: Where can I find customer master records?
+    relevant_document_ids: [asset:raw.customer]
+    description: Finds the canonical customer asset.
+  - id: customer-business-id
+    query: What is the customer number field?
+    relevant_document_ids: [column:raw.customer.c_customer_id]
+    description: Finds the business-facing customer identifier.
+  - id: customer-first-name
+    query: Which field has a shopper's given name?
+    relevant_document_ids: [column:raw.customer.c_first_name]
+    description: Finds the customer given-name column.
+  - id: customer-last-name
+    query: Where is the customer surname stored?
+    relevant_document_ids: [column:raw.customer.c_last_name]
+    description: Finds the customer family-name column.
+  - id: calendar-dimension
+    query: Which dataset provides reporting years and calendar dates?
+    relevant_document_ids: [asset:raw.date_dim]
+    description: Finds the shared calendar dimension.
+  - id: calendar-year
+    query: What field represents the reporting year?
+    relevant_document_ids: [column:raw.date_dim.d_year]
+    description: Finds the calendar-year column.
+  - id: store-sales
+    query: Where can I find in-store purchase transactions?
+    relevant_document_ids: [asset:raw.store_sales]
+    description: Finds the store-sales fact table.
+  - id: store-net-paid
+    query: What is the net amount paid for a physical store sale item?
+    relevant_document_ids: [column:raw.store_sales.ss_net_paid]
+    description: Finds the store channel net-paid measure.
+  - id: catalog-sales
+    query: Where can I find catalog purchases?
+    relevant_document_ids: [asset:raw.catalog_sales]
+    description: Finds the catalog-sales fact table.
+  - id: catalog-net-paid
+    query: What column records net paid for catalog sales?
+    relevant_document_ids: [column:raw.catalog_sales.cs_net_paid]
+    description: Finds the catalog channel net-paid measure.
+  - id: web-sales
+    query: Where can I find online purchases?
+    relevant_document_ids: [asset:raw.web_sales]
+    description: Finds the web-sales fact table.
+  - id: web-net-paid
+    query: What column records the online sales amount after payment?
+    relevant_document_ids: [column:raw.web_sales.ws_net_paid]
+    description: Finds the web channel net-paid measure.
+  - id: yearly-revenue
+    query: Where can I find yearly customer spending?
+    relevant_document_ids: [asset:analytics.customer_revenue_yearly]
+    description: Finds the derived customer-by-year revenue asset.
+  - id: total-yearly-revenue
+    query: What field is total customer revenue across all sales channels?
+    relevant_document_ids: [column:analytics.customer_revenue_yearly.total_net_paid]
+    description: Finds the all-channel yearly revenue measure.
+  - id: revenue-metric
+    query: What metric defines yearly net paid revenue for each customer?
+    relevant_document_ids: [metric:customer_yearly_net_revenue]
+    description: Finds the documented business metric.
+  - id: yearly-revenue-lineage
+    query: How is customer yearly revenue built from the sales channels?
+    relevant_document_ids: [transformation:build_customer_revenue_yearly]
+    description: Finds the documented transformation rather than generating lineage.

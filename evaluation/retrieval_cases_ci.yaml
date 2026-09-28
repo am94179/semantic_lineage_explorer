@@ -1,0 +1,14 @@
+version: 1
+cases:
+  - id: ci-customer
+    query: Where can I find customer master records?
+    relevant_document_ids: [asset:raw.customer]
+    description: CI fixture for customer asset retrieval.
+  - id: ci-yearly-revenue
+    query: Where can I find yearly customer spending?
+    relevant_document_ids: [asset:analytics.customer_revenue_yearly]
+    description: CI fixture for derived revenue retrieval.
+  - id: ci-metric
+    query: What metric defines yearly net paid revenue for each customer?
+    relevant_document_ids: [metric:customer_yearly_net_revenue]
+    description: CI fixture for metric retrieval.

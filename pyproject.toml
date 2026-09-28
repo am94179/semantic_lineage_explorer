@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "semantic-data-lineage-explorer"
+version = "0.1.0"
+description = "AI-powered semantic data discovery and lineage exploration."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "langgraph>=1.0,<2",
+    "sqlglot>=27,<29",
+    "openai>=1.0,<3",
+    "qdrant-client>=1.12,<2",
+    "duckdb>=1.4,<2",
+    "pydantic>=2.10,<3",
+    "PyYAML>=6.0,<7",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3,<9",
+    "ruff>=0.9,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/semantic_lineage"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "e2e: requires Docker Qdrant and TPC-DS generation; opt in with RUN_E2E=1",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]

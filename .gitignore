@@ -1,0 +1,19 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Generated analytical data is reproducible and must not be committed.
+data/*.duckdb
+data/*.db
+data/**/*.parquet
+data/**/*.csv
+!data/.gitkeep
+
+# Generated retrieval-evaluation reports
+evaluation/reports/*.json
+
+# Local service state
+qdrant_storage/
